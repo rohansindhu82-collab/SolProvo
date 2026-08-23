@@ -1,0 +1,17 @@
+name: Build
+on:
+  push:
+    branches: ["feat/prospectos-v0-1"]
+  pull_request:
+    branches: ["feat/prospectos-v0-1"]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm install
+      - run: npm run build
