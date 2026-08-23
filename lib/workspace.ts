@@ -1,4 +1,5 @@
 export type ProspectStage = "New" | "Contacted" | "Interested" | "Demo" | "Won" | "Disqualified";
+
 export type WorkspaceProspect = {
   id: string;
   name: string;
@@ -10,11 +11,23 @@ export type WorkspaceProspect = {
   gaps: number;
   stage: ProspectStage;
   nextAction: string;
+  followUpAt?: string;
   createdAt: string;
+  updatedAt?: string;
   source: "Google Places" | "Manual";
 };
 
+export type ProspectActivity = {
+  id: string;
+  prospectId: string;
+  type: "stage" | "note" | "audit" | "demo" | "contact" | "follow-up";
+  title: string;
+  detail?: string;
+  createdAt: string;
+};
+
 const KEY = "solprovo.workspace.v1";
+const ACTIVITY_KEY = "solprovo.activities.v1";
 const EVENT = "solprovo:workspace-changed";
 
 export function loadProspects(): WorkspaceProspect[] {
@@ -31,13 +44,34 @@ export function saveProspects(items: WorkspaceProspect[]) {
 export function upsertProspect(item: WorkspaceProspect) {
   const items = loadProspects();
   const index = items.findIndex(x => x.id === item.id);
-  if (index >= 0) items[index] = { ...items[index], ...item };
-  else items.unshift(item);
+  const next = { ...item, updatedAt: new Date().toISOString() };
+  if (index >= 0) items[index] = { ...items[index], ...next };
+  else items.unshift(next);
   saveProspects(items);
 }
 
 export function updateProspect(id: string, patch: Partial<WorkspaceProspect>) {
-  saveProspects(loadProspects().map(x => x.id === id ? { ...x, ...patch } : x));
+  const current = loadProspects().find(x => x.id === id);
+  saveProspects(loadProspects().map(x => x.id === id ? { ...x, ...patch, updatedAt: new Date().toISOString() } : x));
+  if (current && patch.stage && patch.stage !== current.stage) {
+    addActivity({ prospectId:id, type:"stage", title:`Stage changed to ${patch.stage}`, detail:current.stage + " → " + patch.stage });
+  }
+}
+
+export function loadActivities(prospectId?: string): ProspectActivity[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const items: ProspectActivity[] = JSON.parse(localStorage.getItem(ACTIVITY_KEY) || "[]");
+    return prospectId ? items.filter(x => x.prospectId === prospectId) : items;
+  } catch { return []; }
+}
+
+export function addActivity(activity: Omit<ProspectActivity, "id" | "createdAt">) {
+  if (typeof window === "undefined") return;
+  const items = loadActivities();
+  items.unshift({ ...activity, id: `${activity.prospectId}:${Date.now()}`, createdAt: new Date().toISOString() });
+  localStorage.setItem(ACTIVITY_KEY, JSON.stringify(items.slice(0, 500)));
+  window.dispatchEvent(new Event(EVENT));
 }
 
 export function workspaceEventName() { return EVENT; }
