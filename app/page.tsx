@@ -1,110 +1,30 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { BarChart3, ChevronRight, CircleHelp, Database, FileSearch, LayoutDashboard, MapPinned, Plus, Search, Settings, Sparkles, Target, Users, Zap } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-type Prospect = {
-  id: number;
-  name: string;
-  category: string;
-  location: string;
-  score: number;
-  gapCount: number;
-  status: "New" | "Analyzed" | "Demo ready";
-  website: boolean;
-  whatsapp: boolean;
-  booking: boolean;
-  leadCapture: boolean;
-  followUp: boolean;
-  offers: boolean;
-};
-
+type Prospect = { id:number; name:string; category:string; location:string; score:number; gapCount:number; status:"New"|"Analyzed"|"Demo ready"; website:boolean; whatsapp:boolean; booking:boolean; leadCapture:boolean; followUp:boolean; offers:boolean };
 const prospects: Prospect[] = [
-  { id: 1, name: "Mahagauri Properties", category: "Real Estate Consultant", location: "Greater Noida", score: 87, gapCount: 4, status: "Demo ready", website: true, whatsapp: true, booking: false, leadCapture: false, followUp: false, offers: false },
-  { id: 2, name: "Bhoomi Properties & Developers", category: "Real Estate Consultant", location: "Greater Noida", score: 81, gapCount: 4, status: "Analyzed", website: true, whatsapp: true, booking: false, leadCapture: false, followUp: false, offers: true },
-  { id: 3, name: "Satyam Properties / SP Estate", category: "Real Estate Agency", location: "Greater Noida", score: 76, gapCount: 3, status: "Analyzed", website: true, whatsapp: true, booking: false, leadCapture: true, followUp: false, offers: false },
-  { id: 4, name: "Nagar Properties", category: "Property Dealer", location: "Noida", score: 72, gapCount: 3, status: "New", website: false, whatsapp: true, booking: false, leadCapture: false, followUp: false, offers: false },
-  { id: 5, name: "R.S. Bhati Property & Legal", category: "Property Consultant", location: "Greater Noida", score: 68, gapCount: 3, status: "New", website: true, whatsapp: false, booking: false, leadCapture: false, followUp: true, offers: false },
-  { id: 6, name: "Arya Dental Care & Implant Center", category: "Dental Clinic", location: "Greater Noida", score: 64, gapCount: 3, status: "New", website: true, whatsapp: true, booking: false, leadCapture: true, followUp: false, offers: false },
+ {id:1,name:"Mahagauri Properties",category:"Real Estate Consultant",location:"Greater Noida",score:87,gapCount:4,status:"Demo ready",website:true,whatsapp:true,booking:false,leadCapture:false,followUp:false,offers:false},
+ {id:2,name:"Bhoomi Properties & Developers",category:"Real Estate Consultant",location:"Greater Noida",score:81,gapCount:4,status:"Analyzed",website:true,whatsapp:true,booking:false,leadCapture:false,followUp:false,offers:true},
+ {id:3,name:"Satyam Properties / SP Estate",category:"Real Estate Agency",location:"Greater Noida",score:76,gapCount:3,status:"Analyzed",website:true,whatsapp:true,booking:false,leadCapture:true,followUp:false,offers:false},
+ {id:4,name:"Nagar Properties",category:"Property Dealer",location:"Noida",score:72,gapCount:3,status:"New",website:false,whatsapp:true,booking:false,leadCapture:false,followUp:false,offers:false},
+ {id:5,name:"R.S. Bhati Property & Legal",category:"Property Consultant",location:"Greater Noida",score:68,gapCount:3,status:"New",website:true,whatsapp:false,booking:false,leadCapture:false,followUp:true,offers:false},
+ {id:6,name:"Arya Dental Care & Implant Center",category:"Dental Clinic",location:"Greater Noida",score:64,gapCount:3,status:"New",website:true,whatsapp:true,booking:false,leadCapture:true,followUp:false,offers:false},
 ];
+type NavItem={label:string;Icon:LucideIcon;href:string};
+const nav:NavItem[]=[{label:"Overview",Icon:LayoutDashboard,href:"/"},{label:"Prospects",Icon:Users,href:"/#prospects"},{label:"Discovery",Icon:MapPinned,href:"/discovery"},{label:"Audits",Icon:FileSearch,href:"/analyze"},{label:"Demo Factory",Icon:Sparkles,href:"/demo"},{label:"Sales",Icon:Target,href:"/#sales"}];
 
-type NavItem = { label: string; Icon: LucideIcon };
-const nav: NavItem[] = [
-  { label: "Overview", Icon: LayoutDashboard },
-  { label: "Prospects", Icon: Users },
-  { label: "Discovery", Icon: MapPinned },
-  { label: "Audits", Icon: FileSearch },
-  { label: "Demo Factory", Icon: Sparkles },
-  { label: "Sales", Icon: Target },
-];
-
-export default function Home() {
-  const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState("All");
-  const [selected, setSelected] = useState<Prospect | null>(prospects[0]);
-  const [analyzed, setAnalyzed] = useState(false);
-
-  const filtered = useMemo(() => prospects.filter((p) => {
-    const matchesQuery = `${p.name} ${p.category} ${p.location}`.toLowerCase().includes(query.toLowerCase());
-    const matchesFilter = filter === "All" || (filter === "High opportunity" ? p.score >= 75 : p.status === filter);
-    return matchesQuery && matchesFilter;
-  }), [query, filter]);
-
-  const openProspect = (p: Prospect) => { setSelected(p); setAnalyzed(p.status !== "New"); };
-
-  return (
-    <div className="shell">
-      <aside className="sidebar">
-        <div className="brand"><div className="logo">S</div><div><strong>SolProvo</strong><span>ProspectOS · India</span></div></div>
-        <div className="nav-title">Workspace</div>
-        <nav className="nav">{nav.map(({ label, Icon }, i) => <a href="#" key={label} className={i === 0 ? "active" : ""}><Icon size={16}/><span>{label}</span></a>)}</nav>
-        <div className="nav-title" style={{ marginTop: 18 }}>System</div>
-        <nav className="nav"><a href="#"><Database size={16}/><span>BusinessOS</span></a><a href="#"><Settings size={16}/><span>Settings</span></a><a href="#"><CircleHelp size={16}/><span>Help</span></a></nav>
-        <div className="sidebar-footer">Built for Indian local businesses.<br/>Discover opportunities before you sell.</div>
-      </aside>
-
-      <main className="main">
-        <header className="topbar"><div className="crumb">SolProvo / <b>ProspectOS</b></div><div className="avatar">RS</div></header>
-        <section className="content">
-          <div className="header">
-            <div><h1>ProspectOS</h1><p className="sub">Find businesses, understand their digital gaps, and generate a reason to talk.</p></div>
-            <div className="actions"><button className="btn"><Plus size={14} style={{verticalAlign: "-2px", marginRight: 6}}/>Add prospect</button><button className="btn primary"><MapPinned size={14} style={{verticalAlign: "-2px", marginRight: 6}}/>Discover businesses</button></div>
-          </div>
-
-          <div className="stats">
-            <div className="card stat"><div className="stat-top"><span>Total prospects</span><Users size={15}/></div><div className="stat-value">127</div><div className="stat-note">+18 this week</div></div>
-            <div className="card stat"><div className="stat-top"><span>High opportunity</span><Zap size={15}/></div><div className="stat-value">24</div><div className="stat-note">19% of pipeline</div></div>
-            <div className="card stat"><div className="stat-top"><span>Audits completed</span><FileSearch size={15}/></div><div className="stat-value">43</div><div className="stat-note">+9 this week</div></div>
-            <div className="card stat"><div className="stat-top"><span>Demos ready</span><Sparkles size={15}/></div><div className="stat-value">11</div><div className="stat-note neutral">Ready for sales</div></div>
-          </div>
-
-          <div className="card toolbar"><div style={{position:"relative", flex:1}}><Search size={15} style={{position:"absolute", left:12, top:10, color:"#8a95a5"}}/><input className="search" style={{paddingLeft:36}} placeholder="Search business, category or location…" value={query} onChange={e=>setQuery(e.target.value)}/></div><select className="select" value={filter} onChange={e=>setFilter(e.target.value)}><option>All</option><option>High opportunity</option><option>New</option><option>Analyzed</option><option>Demo ready</option></select></div>
-
-          <div className="card table">
-            <table><thead><tr><th>Business</th><th>Opportunity</th><th>Gaps</th><th>Current state</th><th>Status</th><th></th></tr></thead>
-              <tbody>{filtered.map(p => <tr key={p.id} onClick={()=>openProspect(p)} style={{cursor:"pointer"}}>
-                <td><div className="business"><div className="business-icon">{p.name.split(" ").map(x=>x[0]).slice(0,2).join("")}</div><div><div className="business-name">{p.name}</div><div className="business-meta">{p.category} · {p.location}</div></div></div></td>
-                <td><span className={`score ${p.score >= 75 ? "high" : p.score >= 60 ? "medium" : "low"}`}>{p.score}/100</span></td>
-                <td><span className={p.gapCount >= 4 ? "badge hot" : "badge warn"}>{p.gapCount} opportunities</span></td>
-                <td><span className="business-meta">{p.website ? "Website" : "No website"} · {p.whatsapp ? "WhatsApp" : "No WhatsApp"}</span></td>
-                <td><span className={`badge ${p.status === "Demo ready" ? "hot" : p.status === "Analyzed" ? "warn" : "muted"}`}>{p.status}</span></td>
-                <td><ChevronRight size={15} color="#8994a4"/></td>
-              </tr>)}</tbody>
-            </table>
-          </div>
-
-          {selected && <div className="grid2" style={{marginTop:18}}>
-            <div className="card panel">
-              <div className="panel-head"><div><h2>{selected.name}</h2><div className="panel-note">{selected.category} · {selected.location}</div></div><button className="btn primary" onClick={()=>setAnalyzed(true)}><Sparkles size={14} style={{verticalAlign:"-2px",marginRight:6}}/>{analyzed ? "Demo ready" : "Analyze business"}</button></div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
-                {[["Website",selected.website],["WhatsApp",selected.whatsapp],["Lead capture",selected.leadCapture],["Booking",selected.booking],["Follow-up",selected.followUp],["Offers",selected.offers]].map(([label,value])=><div key={String(label)} style={{padding:12,border:"1px solid var(--line)",borderRadius:9}}><div className="panel-note">{String(label)}</div><div style={{marginTop:7,fontWeight:700,fontSize:12,color:value?"var(--green)":"var(--red)"}}>{value ? "Detected" : "Gap found"}</div></div>)}
-              </div>
-            </div>
-            <div className="card panel"><div className="panel-head"><h2>Customer journey score</h2><BarChart3 size={16} color="#697586"/></div><div className="score-ring"><span>{selected.score}</span></div><div className="score-label">Higher score = stronger opportunity for SolProvo</div><div style={{marginTop:18}}>{["Lead capture","Booking / site visit","Follow-up","Customer offers"].slice(0, selected.gapCount).map((x,i)=><div className="opportunity" key={x}><div className="dot"/><div><strong>{x}</strong><p>{i===0?"No clear structured path from visitor to qualified enquiry.":i===1?"No obvious booking workflow detected.":i===2?"No visible automated follow-up journey.":"No clear customer reactivation or offer mechanism."}</p></div></div>)}</div></div>
-          </div>}
-        </section>
-      </main>
-    </div>
-  );
+export default function Home(){
+ const [query,setQuery]=useState(""); const [filter,setFilter]=useState("All"); const [selected,setSelected]=useState<Prospect|null>(prospects[0]); const [analyzed,setAnalyzed]=useState(false);
+ const filtered=useMemo(()=>prospects.filter(p=>`${p.name} ${p.category} ${p.location}`.toLowerCase().includes(query.toLowerCase())&&(filter==="All"||(filter==="High opportunity"?p.score>=75:p.status===filter))),[query,filter]);
+ const openProspect=(p:Prospect)=>{setSelected(p);setAnalyzed(p.status!=="New")};
+ return <div className="shell"><aside className="sidebar"><div className="brand"><div className="logo">S</div><div><strong>SolProvo</strong><span>ProspectOS · India</span></div></div><div className="nav-title">Workspace</div><nav className="nav">{nav.map(({label,Icon,href},i)=><Link href={href} key={label} className={i===0?"active":""}><Icon size={16}/><span>{label}</span></Link>)}</nav><div className="nav-title" style={{marginTop:18}}>System</div><nav className="nav"><Link href="#"><Database size={16}/><span>BusinessOS</span></Link><Link href="#"><Settings size={16}/><span>Settings</span></Link><Link href="#"><CircleHelp size={16}/><span>Help</span></Link></nav><div className="sidebar-footer">Built for Indian local businesses.<br/>Discover opportunities before you sell.</div></aside>
+ <main className="main"><header className="topbar"><div className="crumb">SolProvo / <b>ProspectOS</b></div><div className="avatar">RS</div></header><section className="content"><div className="header"><div><h1>ProspectOS</h1><p className="sub">Find businesses, understand their digital gaps, and generate a reason to talk.</p></div><div className="actions"><Link className="btn" href="/discovery"><Plus size={14} style={{verticalAlign:"-2px",marginRight:6}}/>Add prospect</Link><Link className="btn primary" href="/discovery"><MapPinned size={14} style={{verticalAlign:"-2px",marginRight:6}}/>Discover businesses</Link></div></div>
+ <div className="stats"><div className="card stat"><div className="stat-top"><span>Total prospects</span><Users size={15}/></div><div className="stat-value">127</div><div className="stat-note">+18 this week</div></div><div className="card stat"><div className="stat-top"><span>High opportunity</span><Zap size={15}/></div><div className="stat-value">24</div><div className="stat-note">19% of pipeline</div></div><div className="card stat"><div className="stat-top"><span>Audits completed</span><FileSearch size={15}/></div><div className="stat-value">43</div><div className="stat-note">+9 this week</div></div><div className="card stat"><div className="stat-top"><span>Demos ready</span><Sparkles size={15}/></div><div className="stat-value">11</div><div className="stat-note neutral">Ready for sales</div></div></div>
+ <div id="prospects" className="card toolbar"><div style={{position:"relative",flex:1}}><Search size={15} style={{position:"absolute",left:12,top:10,color:"#8a95a5"}}/><input className="search" style={{paddingLeft:36}} placeholder="Search business, category or location…" value={query} onChange={e=>setQuery(e.target.value)}/></div><select className="select" value={filter} onChange={e=>setFilter(e.target.value)}><option>All</option><option>High opportunity</option><option>New</option><option>Analyzed</option><option>Demo ready</option></select></div>
+ <div className="card table"><table><thead><tr><th>Business</th><th>Opportunity</th><th>Gaps</th><th>Current state</th><th>Status</th><th></th></tr></thead><tbody>{filtered.map(p=><tr key={p.id} onClick={()=>openProspect(p)} style={{cursor:"pointer"}}><td><div className="business"><div className="business-icon">{p.name.split(" ").map(x=>x[0]).slice(0,2).join("")}</div><div><div className="business-name">{p.name}</div><div className="business-meta">{p.category} · {p.location}</div></div></div></td><td><span className={`score ${p.score>=75?"high":p.score>=60?"medium":"low"}`}>{p.score}/100</span></td><td><span className={p.gapCount>=4?"badge hot":"badge warn"}>{p.gapCount} opportunities</span></td><td><span className="business-meta">{p.website?"Website":"No website"} · {p.whatsapp?"WhatsApp":"No WhatsApp"}</span></td><td><span className={`badge ${p.status==="Demo ready"?"hot":p.status==="Analyzed"?"warn":"muted"}`}>{p.status}</span></td><td><ChevronRight size={15} color="#8994a4"/></td></tr>)}</tbody></table></div>
+ {selected&&<div className="grid2" style={{marginTop:18}}><div className="card panel"><div className="panel-head"><div><h2>{selected.name}</h2><div className="panel-note">{selected.category} · {selected.location}</div></div><Link className="btn primary" href="/demo"><Sparkles size={14} style={{verticalAlign:"-2px",marginRight:6}}/>{analyzed?"Demo ready":"Open demo factory"}</Link></div><div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>{[["Website",selected.website],["WhatsApp",selected.whatsapp],["Lead capture",selected.leadCapture],["Booking",selected.booking],["Follow-up",selected.followUp],["Offers",selected.offers]].map(([label,value])=><div key={String(label)} style={{padding:12,border:"1px solid var(--line)",borderRadius:9}}><div className="panel-note">{String(label)}</div><div style={{marginTop:7,fontWeight:700,fontSize:12,color:value?"var(--green)":"var(--red)"}}>{value?"Detected":"Gap found"}</div></div>)}</div></div><div className="card panel"><div className="panel-head"><h2>Customer journey score</h2><BarChart3 size={16} color="#697586"/></div><div className="score-ring"><span>{selected.score}</span></div><div className="score-label">Higher score = stronger opportunity for SolProvo</div><div style={{marginTop:18}}>{["Lead capture","Booking / site visit","Follow-up","Customer offers"].slice(0,selected.gapCount).map((x,i)=><div className="opportunity" key={x}><div className="dot"/><div><strong>{x}</strong><p>{i===0?"No clear structured path from visitor to qualified enquiry.":i===1?"No obvious booking workflow detected.":i===2?"No visible automated follow-up journey.":"No clear customer reactivation or offer mechanism."}</p></div></div>)}</div></div></div>}</section></main></div>;
 }
