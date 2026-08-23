@@ -6,20 +6,38 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function workspaceOwner(workspaceId) {
+    function ownsWorkspace(workspaceId) {
       return signedIn() && request.auth.uid == workspaceId;
     }
 
     match /workspaces/{workspaceId} {
-      allow create: if workspaceOwner(workspaceId)
-        && request.resource.data.ownerId == request.auth.uid;
-      allow read, update, delete: if workspaceOwner(workspaceId);
-    }
+      allow read: if ownsWorkspace(workspaceId);
 
-    match /workspaces/{workspaceId}/{collection}/{documentId} {
-      // User-scoped foundation. Team/member roles can be added here when
-      // shared workspaces are introduced; no cross-user workspace access.
-      allow read, write: if workspaceOwner(workspaceId);
+      allow create: if ownsWorkspace(workspaceId)
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.id == workspaceId;
+
+      allow update: if ownsWorkspace(workspaceId)
+        && resource.data.ownerId == request.auth.uid
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.id == workspaceId;
+
+      // Workspaces are intentionally never deleted from the client.
+      allow delete: if false;
+
+      // Every nested SolProvo collection is workspace-scoped.
+      // This covers prospects, leads, activities, audits, demos,
+      // appointments, customers, and future collections.
+      match /{collectionName}/{documentId} {
+        allow read: if ownsWorkspace(workspaceId);
+
+        allow create, update: if ownsWorkspace(workspaceId)
+          && request.resource.data.ownerId == request.auth.uid
+          && request.resource.data.workspaceId == workspaceId;
+
+        allow delete: if ownsWorkspace(workspaceId)
+          && resource.data.ownerId == request.auth.uid;
+      }
     }
   }
 }
