@@ -3,16 +3,9 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 const FIELD_MASK = [
-  "places.id",
-  "places.displayName",
-  "places.formattedAddress",
-  "places.websiteUri",
-  "places.googleMapsUri",
-  "places.types",
-  "places.businessStatus",
-  "places.nationalPhoneNumber",
-  "places.internationalPhoneNumber",
-  "places.photos.name",
+  "places.id","places.displayName","places.formattedAddress","places.websiteUri","places.googleMapsUri",
+  "places.types","places.businessStatus","places.nationalPhoneNumber","places.internationalPhoneNumber",
+  "places.photos.name","places.rating","places.userRatingCount","places.regularOpeningHours","places.reviews",
 ].join(",");
 
 export async function POST(request: Request) {
@@ -28,23 +21,20 @@ export async function POST(request: Request) {
     const response = await fetch("https://places.googleapis.com/v1/places:searchText", {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Goog-Api-Key": apiKey, "X-Goog-FieldMask": FIELD_MASK },
-      body: JSON.stringify({ textQuery, pageSize: limit, languageCode: "en", regionCode: "IN" }),
-      cache: "no-store",
+      body: JSON.stringify({ textQuery, pageSize: limit, languageCode: "en", regionCode: "IN" }), cache: "no-store",
     });
     const data = await response.json();
     if (!response.ok) return NextResponse.json({ error: data?.error?.message || "Google Places discovery failed." }, { status: response.status });
     const places = Array.isArray(data?.places) ? data.places : [];
     return NextResponse.json({ query: textQuery, places: places.map((place: any) => ({
-      placeId: place.id || null,
-      name: place.displayName?.text || "Unnamed business",
-      address: place.formattedAddress || null,
-      website: place.websiteUri || null,
-      mapsUrl: place.googleMapsUri || null,
+      placeId: place.id || null, name: place.displayName?.text || "Unnamed business", address: place.formattedAddress || null,
+      website: place.websiteUri || null, mapsUrl: place.googleMapsUri || null,
       phone: place.internationalPhoneNumber || place.nationalPhoneNumber || null,
-      photoNames: Array.isArray(place.photos) ? place.photos.map((photo: any) => photo.name).filter(Boolean).slice(0, 6) : [],
-      types: Array.isArray(place.types) ? place.types : [],
-      businessStatus: place.businessStatus || null,
-      source: "Google Places API (New)",
+      photoNames: Array.isArray(place.photos) ? place.photos.map((photo: any) => photo.name).filter(Boolean).slice(0, 8) : [],
+      types: Array.isArray(place.types) ? place.types : [], businessStatus: place.businessStatus || null,
+      rating: Number(place.rating) || null, reviewCount: Number(place.userRatingCount) || 0,
+      hours: Array.isArray(place.regularOpeningHours?.weekdayDescriptions) ? place.regularOpeningHours.weekdayDescriptions : [],
+      reviews: Array.isArray(place.reviews) ? place.reviews.slice(0, 8) : [], source: "Google Places API (New)",
     })) });
   } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Discovery failed." }, { status: 500 }); }
 }
