@@ -8,6 +8,8 @@ export type WorkspaceProspect = {
   opportunityLabel?: "High" | "Medium" | "Low"; opportunityReason?: string; recommendedService?: string;
   recommendedPackage?: "Starter" | "Growth" | "Premium"; demoType?: "lead-capture" | "appointment" | "offers" | "reactivation";
   blueprintId?: string; conversionGoal?: string; primaryCta?: string; secondaryCta?: string; chatbotIntents?: string[];
+  rating?: number; reviewCount?: number; hours?: string[]; reviews?: Array<{author?: string;text?: string;rating?: number;relativeTime?: string}>;
+  intelligence?: any;
 };
 export type ProspectActivity = { id: string; prospectId: string; type: "stage" | "note" | "audit" | "demo" | "contact" | "follow-up"; title: string; detail?: string; createdAt: string };
 const KEY = "solprovo.workspace.v1"; const ACTIVITY_KEY = "solprovo.activities.v1"; const EVENT = "solprovo:workspace-changed";
