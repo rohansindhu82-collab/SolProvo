@@ -24,7 +24,7 @@ The first vertical is **Indian real estate**, starting with Noida / Greater Noid
 
 ## Live discovery setup
 
-SolProvo uses the official **Google Places API (New) Text Search** for business discovery rather than scraping Google Maps. Google requires an API key and a response field mask for Text Search (New). citehttps://developers.google.com/maps/documentation/places/web-service/text-search
+SolProvo uses the official **Google Places API (New) Text Search** for business discovery rather than scraping Google Maps. Google requires an API key and a response field mask for Text Search (New).
 
 1. In Google Cloud, enable **Places API (New)** and create a server-side API key.
 2. Restrict the key to the APIs/environments you need.
