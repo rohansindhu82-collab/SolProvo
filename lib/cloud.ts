@@ -1,6 +1,5 @@
 import { collection, doc, getDoc, getDocs, setDoc, type DocumentData } from "firebase/firestore";
 import { currentFirebaseUser, firebaseDb, firebaseConfigured } from "@/lib/firebase";
-import { loadActivities, loadProspects, saveProspects, type ProspectActivity, type WorkspaceProspect } from "@/lib/workspace";
 
 const WORKSPACE_KEY = "solprovo.workspace.id.v2";
 const DEFAULT_WORKSPACE = process.env.NEXT_PUBLIC_SOLPROVO_WORKSPACE_ID || "local-workspace";
@@ -64,42 +63,6 @@ export async function cloudList<T>(collectionName: string): Promise<T[]> {
   if (!ref) return [];
   const snapshot = await getDocs(ref);
   return snapshot.docs.map(item => item.data() as T);
-}
-
-/**
- * One-time migration/hydration bridge from the existing browser workspace to Firestore.
- * Local data is preserved so the current UI continues to work, while Firestore becomes
- * the durable source for the signed-in workspace.
- */
-export async function hydrateWorkspace() {
-  if (!cloudEnabled()) return { ok: false, migrated: false };
-  const user = currentFirebaseUser();
-  if (!user) return { ok: false, migrated: false };
-
-  await ensureWorkspace(user.uid);
-
-  const [cloudProspects, cloudActivities] = await Promise.all([
-    cloudList<WorkspaceProspect>("prospects"),
-    cloudList<ProspectActivity>("activities"),
-  ]);
-  const localProspects = loadProspects();
-  const localActivities = loadActivities();
-
-  if (cloudProspects.length > 0) {
-    saveProspects(cloudProspects);
-  } else if (localProspects.length > 0) {
-    await Promise.all(localProspects.map(item => cloudPut("prospects", item.id, item)));
-  }
-
-  if (cloudActivities.length === 0 && localActivities.length > 0) {
-    await Promise.all(localActivities.map(item => cloudPut("activities", item.id, item)));
-  }
-
-  return {
-    ok: true,
-    migrated: cloudProspects.length === 0 && localProspects.length > 0,
-    prospects: cloudProspects.length || localProspects.length,
-  };
 }
 
 export async function cloudHealth() {
