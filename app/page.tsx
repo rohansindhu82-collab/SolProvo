@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BarChart3, Building2, ChevronRight, CircleHelp, Database, FileSearch, LayoutDashboard, MapPinned, MessageSquareText, Plus, Search, Settings, Sparkles, Target, Users, Zap } from "lucide-react";
+import { BarChart3, ChevronRight, CircleHelp, Database, FileSearch, LayoutDashboard, MapPinned, Plus, Search, Settings, Sparkles, Target, Users, Zap } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 type Prospect = {
   id: number;
@@ -28,8 +29,14 @@ const prospects: Prospect[] = [
   { id: 6, name: "Arya Dental Care & Implant Center", category: "Dental Clinic", location: "Greater Noida", score: 64, gapCount: 3, status: "New", website: true, whatsapp: true, booking: false, leadCapture: true, followUp: false, offers: false },
 ];
 
-const nav = [
-  ["Overview", LayoutDashboard], ["Prospects", Users], ["Discovery", MapPinned], ["Audits", FileSearch], ["Demo Factory", Sparkles], ["Sales", Target],
+type NavItem = { label: string; Icon: LucideIcon };
+const nav: NavItem[] = [
+  { label: "Overview", Icon: LayoutDashboard },
+  { label: "Prospects", Icon: Users },
+  { label: "Discovery", Icon: MapPinned },
+  { label: "Audits", Icon: FileSearch },
+  { label: "Demo Factory", Icon: Sparkles },
+  { label: "Sales", Icon: Target },
 ];
 
 export default function Home() {
@@ -51,7 +58,7 @@ export default function Home() {
       <aside className="sidebar">
         <div className="brand"><div className="logo">S</div><div><strong>SolProvo</strong><span>ProspectOS · India</span></div></div>
         <div className="nav-title">Workspace</div>
-        <nav className="nav">{nav.map(([label, Icon], i) => <a href="#" key={label as string} className={i === 0 ? "active" : ""}><Icon size={16}/><span>{label as string}</span></a>)}</nav>
+        <nav className="nav">{nav.map(({ label, Icon }, i) => <a href="#" key={label} className={i === 0 ? "active" : ""}><Icon size={16}/><span>{label}</span></a>)}</nav>
         <div className="nav-title" style={{ marginTop: 18 }}>System</div>
         <nav className="nav"><a href="#"><Database size={16}/><span>BusinessOS</span></a><a href="#"><Settings size={16}/><span>Settings</span></a><a href="#"><CircleHelp size={16}/><span>Help</span></a></nav>
         <div className="sidebar-footer">Built for Indian local businesses.<br/>Discover opportunities before you sell.</div>
@@ -91,7 +98,7 @@ export default function Home() {
             <div className="card panel">
               <div className="panel-head"><div><h2>{selected.name}</h2><div className="panel-note">{selected.category} · {selected.location}</div></div><button className="btn primary" onClick={()=>setAnalyzed(true)}><Sparkles size={14} style={{verticalAlign:"-2px",marginRight:6}}/>{analyzed ? "Demo ready" : "Analyze business"}</button></div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
-                {[["Website",selected.website],["WhatsApp",selected.whatsapp],["Lead capture",selected.leadCapture],["Booking",selected.booking],["Follow-up",selected.followUp],["Offers",selected.offers]].map(([label,value])=><div key={label as string} style={{padding:12,border:"1px solid var(--line)",borderRadius:9}}><div className="panel-note">{label as string}</div><div style={{marginTop:7,fontWeight:700,fontSize:12,color:value?"var(--green)":"var(--red)"}}>{value ? "Detected" : "Gap found"}</div></div>)}
+                {[["Website",selected.website],["WhatsApp",selected.whatsapp],["Lead capture",selected.leadCapture],["Booking",selected.booking],["Follow-up",selected.followUp],["Offers",selected.offers]].map(([label,value])=><div key={String(label)} style={{padding:12,border:"1px solid var(--line)",borderRadius:9}}><div className="panel-note">{String(label)}</div><div style={{marginTop:7,fontWeight:700,fontSize:12,color:value?"var(--green)":"var(--red)"}}>{value ? "Detected" : "Gap found"}</div></div>)}
               </div>
             </div>
             <div className="card panel"><div className="panel-head"><h2>Customer journey score</h2><BarChart3 size={16} color="#697586"/></div><div className="score-ring"><span>{selected.score}</span></div><div className="score-label">Higher score = stronger opportunity for SolProvo</div><div style={{marginTop:18}}>{["Lead capture","Booking / site visit","Follow-up","Customer offers"].slice(0, selected.gapCount).map((x,i)=><div className="opportunity" key={x}><div className="dot"/><div><strong>{x}</strong><p>{i===0?"No clear structured path from visitor to qualified enquiry.":i===1?"No obvious booking workflow detected.":i===2?"No visible automated follow-up journey.":"No clear customer reactivation or offer mechanism."}</p></div></div>)}</div></div>
