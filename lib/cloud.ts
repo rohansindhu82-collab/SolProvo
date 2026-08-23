@@ -6,7 +6,7 @@ const DEFAULT_WORKSPACE = process.env.NEXT_PUBLIC_SOLPROVO_WORKSPACE_ID || "loca
 
 export function getWorkspaceId(userId?: string) {
   if (userId) {
-    const id = `user-${userId}`;
+    const id = userId;
     if (typeof window !== "undefined") localStorage.setItem(WORKSPACE_KEY, id);
     return id;
   }
