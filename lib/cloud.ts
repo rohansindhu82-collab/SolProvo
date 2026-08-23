@@ -1,32 +1,61 @@
-import { collection, doc, getDocs, setDoc, type DocumentData } from "firebase/firestore";
-import { ensureFirebaseUser, firebaseDb, firebaseConfigured } from "@/lib/firebase";
+import { collection, doc, getDoc, getDocs, setDoc, type DocumentData } from "firebase/firestore";
+import { currentFirebaseUser, firebaseDb, firebaseConfigured } from "@/lib/firebase";
+import { loadActivities, loadProspects, saveProspects, type ProspectActivity, type WorkspaceProspect } from "@/lib/workspace";
 
-const WORKSPACE_KEY = "solprovo.workspace.id.v1";
-const DEFAULT_WORKSPACE = process.env.NEXT_PUBLIC_SOLPROVO_WORKSPACE_ID || "demo-workspace";
+const WORKSPACE_KEY = "solprovo.workspace.id.v2";
+const DEFAULT_WORKSPACE = process.env.NEXT_PUBLIC_SOLPROVO_WORKSPACE_ID || "local-workspace";
 
-export function getWorkspaceId() {
+export function getWorkspaceId(userId?: string) {
+  if (userId) {
+    const id = `user-${userId}`;
+    if (typeof window !== "undefined") localStorage.setItem(WORKSPACE_KEY, id);
+    return id;
+  }
   if (typeof window === "undefined") return DEFAULT_WORKSPACE;
-  const existing = localStorage.getItem(WORKSPACE_KEY);
-  if (existing) return existing;
-  localStorage.setItem(WORKSPACE_KEY, DEFAULT_WORKSPACE);
-  return DEFAULT_WORKSPACE;
+  return localStorage.getItem(WORKSPACE_KEY) || DEFAULT_WORKSPACE;
 }
 
 export function cloudEnabled() {
   return typeof window !== "undefined" && firebaseConfigured();
 }
 
+async function ensureWorkspace(userId: string) {
+  const db = firebaseDb();
+  if (!db) return null;
+  const workspaceId = getWorkspaceId(userId);
+  const ref = doc(db, "workspaces", workspaceId);
+  const snapshot = await getDoc(ref);
+  if (!snapshot.exists()) {
+    await setDoc(ref, {
+      id: workspaceId,
+      ownerId: userId,
+      name: "SolProvo Workspace",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+  }
+  return workspaceId;
+}
+
 async function workspaceCollection(name: string) {
   const db = firebaseDb();
-  const user = await ensureFirebaseUser();
+  const user = currentFirebaseUser();
   if (!db || !user) return null;
-  return collection(db, "workspaces", getWorkspaceId(), name);
+  const workspaceId = await ensureWorkspace(user.uid);
+  if (!workspaceId) return null;
+  return collection(db, "workspaces", workspaceId, name);
 }
 
 export async function cloudPut<T extends DocumentData>(collectionName: string, id: string, data: T) {
   const ref = await workspaceCollection(collectionName);
   if (!ref) return false;
-  await setDoc(doc(ref, id), { ...data, workspaceId: getWorkspaceId(), syncedAt: new Date().toISOString() }, { merge: true });
+  const user = currentFirebaseUser();
+  await setDoc(doc(ref, id), {
+    ...data,
+    workspaceId: getWorkspaceId(user?.uid),
+    ownerId: user?.uid,
+    syncedAt: new Date().toISOString(),
+  }, { merge: true });
   return true;
 }
 
@@ -37,11 +66,49 @@ export async function cloudList<T>(collectionName: string): Promise<T[]> {
   return snapshot.docs.map(item => item.data() as T);
 }
 
+/**
+ * One-time migration/hydration bridge from the existing browser workspace to Firestore.
+ * Local data is preserved so the current UI continues to work, while Firestore becomes
+ * the durable source for the signed-in workspace.
+ */
+export async function hydrateWorkspace() {
+  if (!cloudEnabled()) return { ok: false, migrated: false };
+  const user = currentFirebaseUser();
+  if (!user) return { ok: false, migrated: false };
+
+  await ensureWorkspace(user.uid);
+
+  const [cloudProspects, cloudActivities] = await Promise.all([
+    cloudList<WorkspaceProspect>("prospects"),
+    cloudList<ProspectActivity>("activities"),
+  ]);
+  const localProspects = loadProspects();
+  const localActivities = loadActivities();
+
+  if (cloudProspects.length > 0) {
+    saveProspects(cloudProspects);
+  } else if (localProspects.length > 0) {
+    await Promise.all(localProspects.map(item => cloudPut("prospects", item.id, item)));
+  }
+
+  if (cloudActivities.length === 0 && localActivities.length > 0) {
+    await Promise.all(localActivities.map(item => cloudPut("activities", item.id, item)));
+  }
+
+  return {
+    ok: true,
+    migrated: cloudProspects.length === 0 && localProspects.length > 0,
+    prospects: cloudProspects.length || localProspects.length,
+  };
+}
+
 export async function cloudHealth() {
   if (!cloudEnabled()) return { configured: false, authenticated: false, workspaceId: getWorkspaceId() };
   try {
-    const user = await ensureFirebaseUser();
-    return { configured: true, authenticated: Boolean(user), workspaceId: getWorkspaceId(), uid: user?.uid };
+    const user = currentFirebaseUser();
+    if (!user) return { configured: true, authenticated: false, workspaceId: getWorkspaceId() };
+    const workspaceId = await ensureWorkspace(user.uid);
+    return { configured: true, authenticated: true, workspaceId, uid: user.uid };
   } catch {
     return { configured: true, authenticated: false, workspaceId: getWorkspaceId() };
   }
