@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, setDoc, type DocumentData } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDoc, getDocs, setDoc, type DocumentData } from "firebase/firestore";
 import { currentFirebaseUser, firebaseDb, firebaseConfigured } from "@/lib/firebase";
 
 const WORKSPACE_KEY = "solprovo.workspace.id.v2";
@@ -55,6 +55,13 @@ export async function cloudPut<T extends DocumentData>(collectionName: string, i
     ownerId: user?.uid,
     syncedAt: new Date().toISOString(),
   }, { merge: true });
+  return true;
+}
+
+export async function cloudDelete(collectionName: string, id: string) {
+  const ref = await workspaceCollection(collectionName);
+  if (!ref) return false;
+  await deleteDoc(doc(ref, id));
   return true;
 }
 
