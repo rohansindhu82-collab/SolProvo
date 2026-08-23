@@ -1,28 +1,55 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { ArrowLeft, CheckCircle2, ExternalLink, FileSearch, Loader2, ShieldCheck, TriangleAlert, XCircle } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 type AuditSignal = { key: string; label: string; detected: boolean; confidence: string; evidence: string[] };
 type Audit = { url: string; finalUrl: string; title: string; description: string; scannedAt: string; score: number; signals: AuditSignal[]; opportunities: { key: string; title: string; reason: string }[]; limitations: string[] };
 
 export default function AnalyzePage() {
+  const searchParams = useSearchParams();
   const [url, setUrl] = useState("");
   const [audit, setAudit] = useState<Audit | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    setLoading(true); setError(""); setAudit(null);
+  async function runAudit(targetUrl: string) {
+    const normalizedUrl = targetUrl.trim();
+    if (!normalizedUrl) return;
+
+    setLoading(true);
+    setError("");
+    setAudit(null);
+    setUrl(normalizedUrl);
+
     try {
-      const response = await fetch("/api/audit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url }) });
+      const response = await fetch("/api/audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: normalizedUrl }),
+      });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Audit failed.");
-      setAudit(data);
-    } catch (e) { setError(e instanceof Error ? e.message : "Audit failed."); }
-    finally { setLoading(false); }
+      setAudit(data.audit ?? data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Audit failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    const initialUrl = searchParams.get("url");
+    if (initialUrl) {
+      void runAudit(initialUrl);
+    }
+  }, [searchParams]);
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    await runAudit(url);
   }
 
   return (
