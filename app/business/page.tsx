@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Bot, CalendarDays, CheckCircle2, MessageCircle, Phone, Star, Users, WalletCards, Clock3, UserRound } from "lucide-react";
 import { loadProspects, workspaceEventName, type WorkspaceProspect } from "@/lib/workspace";
-import { businessOsEventName, loadAppointments, loadLeads, updateAppointment, updateLead, type AppointmentStatus, type BusinessAppointment, type BusinessLead } from "@/lib/businessos";
+import { businessOsEventName, hydrateBusinessOSFromCloud, loadAppointments, loadLeads, updateAppointment, updateLead, type AppointmentStatus, type BusinessAppointment, type BusinessLead } from "@/lib/businessos";
 
 type Module={key:string;icon:typeof Users;title:string;description:string;status:"Live foundation"|"Build next";price:string};
 const modules:Module[]=[
@@ -23,7 +23,7 @@ const appointmentStatuses: AppointmentStatus[]=["Requested","Confirmed","Resched
 export default function BusinessOSPage(){
  const [selected,setSelected]=useState("leads"),[tab,setTab]=useState("inbox"),[prospects,setProspects]=useState<WorkspaceProspect[]>([]),[leads,setLeads]=useState<BusinessLead[]>([]),[appointments,setAppointments]=useState<BusinessAppointment[]>([]);
  const refresh=()=>{setProspects(loadProspects());setLeads(loadLeads());setAppointments(loadAppointments())};
- useEffect(()=>{refresh();window.addEventListener(workspaceEventName(),refresh);window.addEventListener(businessOsEventName(),refresh);return()=>{window.removeEventListener(workspaceEventName(),refresh);window.removeEventListener(businessOsEventName(),refresh)}},[]);
+ useEffect(()=>{let active=true;refresh();void hydrateBusinessOSFromCloud().finally(()=>{if(active)refresh()});window.addEventListener(workspaceEventName(),refresh);window.addEventListener(businessOsEventName(),refresh);return()=>{active=false;window.removeEventListener(workspaceEventName(),refresh);window.removeEventListener(businessOsEventName(),refresh)}},[]);
  const current=useMemo(()=>modules.find(x=>x.key===selected)!,[selected]);
  const activeLeads=leads.filter(x=>!(["Converted","Lost"] as string[]).includes(x.status)).length;
  const activeAppointments=appointments.filter(x=>!(["Completed","Cancelled"] as string[]).includes(x.status)).length;
