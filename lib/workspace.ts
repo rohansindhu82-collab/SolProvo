@@ -1,4 +1,4 @@
-import { cloudPut } from "@/lib/cloud";
+import { cloudDelete, cloudPut } from "@/lib/cloud";
 
 export type ProspectStage = "New" | "Contacted" | "Interested" | "Demo" | "Won" | "Disqualified";
 
@@ -56,6 +56,15 @@ export function upsertProspect(item: WorkspaceProspect) {
   if (index >= 0) items[index] = { ...items[index], ...next };
   else items.unshift(next);
   saveProspects(items);
+}
+
+export function removeProspect(id: string) {
+  if (typeof window === "undefined") return;
+  const items = loadProspects();
+  if (!items.some(x => x.id === id)) return;
+  localStorage.setItem(KEY, JSON.stringify(items.filter(x => x.id !== id)));
+  window.dispatchEvent(new Event(EVENT));
+  void cloudDelete("prospects", id).catch(() => undefined);
 }
 
 export function updateProspect(id: string, patch: Partial<WorkspaceProspect>) {
