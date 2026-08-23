@@ -10,6 +10,8 @@ const FIELD_MASK = [
   "places.googleMapsUri",
   "places.types",
   "places.businessStatus",
+  "places.nationalPhoneNumber",
+  "places.internationalPhoneNumber",
 ].join(",");
 
 export async function POST(request: Request) {
@@ -26,27 +28,17 @@ export async function POST(request: Request) {
     const category = typeof body?.category === "string" ? body.category.trim() : "";
     const location = typeof body?.location === "string" ? body.location.trim() : "";
     const limit = Math.min(Math.max(Number(body?.limit) || 10, 1), 20);
-
-    if (!category || !location) {
-      return NextResponse.json({ error: "Category and target market are required." }, { status: 400 });
-    }
+    if (!category || !location) return NextResponse.json({ error: "Category and target market are required." }, { status: 400 });
 
     const textQuery = `${category} in ${location}, India`;
     const response = await fetch("https://places.googleapis.com/v1/places:searchText", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Goog-Api-Key": apiKey,
-        "X-Goog-FieldMask": FIELD_MASK,
-      },
+      headers: { "Content-Type": "application/json", "X-Goog-Api-Key": apiKey, "X-Goog-FieldMask": FIELD_MASK },
       body: JSON.stringify({ textQuery, pageSize: limit, languageCode: "en", regionCode: "IN" }),
       cache: "no-store",
     });
-
     const data = await response.json();
-    if (!response.ok) {
-      return NextResponse.json({ error: data?.error?.message || "Google Places discovery failed." }, { status: response.status });
-    }
+    if (!response.ok) return NextResponse.json({ error: data?.error?.message || "Google Places discovery failed." }, { status: response.status });
 
     const places = Array.isArray(data?.places) ? data.places : [];
     return NextResponse.json({
@@ -57,6 +49,7 @@ export async function POST(request: Request) {
         address: place.formattedAddress || null,
         website: place.websiteUri || null,
         mapsUrl: place.googleMapsUri || null,
+        phone: place.internationalPhoneNumber || place.nationalPhoneNumber || null,
         types: Array.isArray(place.types) ? place.types : [],
         businessStatus: place.businessStatus || null,
         source: "Google Places API (New)",
