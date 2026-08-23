@@ -6,6 +6,9 @@ import { ArrowLeft, CheckCircle2, ExternalLink, FileText, MapPin, MessageCircle,
 import { loadProspects, type WorkspaceProspect } from "@/lib/workspace";
 import { createLead } from "@/lib/businessos";
 
+const SOCIAL_HOSTS=new Set(["instagram.com","www.instagram.com","facebook.com","www.facebook.com","linkedin.com","www.linkedin.com","youtube.com","www.youtube.com","x.com","www.x.com","twitter.com","www.twitter.com"]);
+function isSocialUrl(value:string){try{const host=new URL(value).hostname.toLowerCase();return SOCIAL_HOSTS.has(host)||host.endsWith(".instagram.com")||host.endsWith(".facebook.com")||host.endsWith(".linkedin.com")||host.endsWith(".youtube.com")}catch{return false}}
+
 export default function DemoFactoryPage() {
   const [prospect,setProspect]=useState<WorkspaceProspect|null>(null);
   const [customer,setCustomer]=useState("");
@@ -24,10 +27,9 @@ export default function DemoFactoryPage() {
   },[]);
 
   const category=(prospect?.category||"local business").replaceAll("_"," ");
-  const categoryLabel=category.charAt(0).toUpperCase()+category.slice(1);
   const businessName=prospect?.name||"Your Business";
   const location=prospect?.location||"Your local market";
-  const hasWebsite=Boolean(prospect?.website);
+  const hasWebsite=Boolean(prospect?.website&&!isSocialUrl(prospect.website));
   const recommended=prospect?.recommendedService||"Lead capture + follow-up";
   const packageName=prospect?.recommendedPackage||"Starter";
   const isRealEstate=category.toLowerCase().includes("real")||category.toLowerCase().includes("property");
@@ -35,12 +37,12 @@ export default function DemoFactoryPage() {
   const primaryAction=isAppointment?"Request an appointment":isRealEstate?"Request property details":"Send an enquiry";
   const intentLabel=isAppointment?"Appointment enquiry":isRealEstate?"Business/property enquiry":"Customer enquiry";
   const contextItems=useMemo(()=>[
-    {icon:MapPin,title:"Local presence",value:location,show:Boolean(location)},
-    {icon:Phone,title:"Phone",value:prospect?.phone||"Not returned by Maps",show:Boolean(prospect?.phone)},
-    {icon:FileText,title:"Website status",value:hasWebsite?"Website available":"No website returned",show:true},
+    {icon:MapPin,title:"Local presence",value:location},
+    {icon:Phone,title:"Phone",value:prospect?.phone||"Not returned by Maps"},
+    {icon:FileText,title:"Website status",value:hasWebsite?"Website available":"No website returned"},
   ],[location,prospect?.phone,hasWebsite]);
 
-  async function submitEnquiry(){
+  function submitEnquiry(){
     setError("");
     if(!customer.trim()||!phone.trim()){setError("Please enter your name and mobile number.");return;}
     const lead=createLead({name:customer.trim(),phone:phone.trim(),intent:need.trim()?`${intentLabel} · ${need.trim()}`:intentLabel,channel:"Demo",status:"New",prospectId:prospect?.id,businessName,location});
@@ -65,7 +67,7 @@ export default function DemoFactoryPage() {
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"start",gap:20}}><div><div style={{fontSize:10,letterSpacing:".14em",fontWeight:800,color:"#9eb9ff"}}>LOCAL BUSINESS WEBSITE</div><h2 style={{fontFamily:"Manrope",fontSize:31,margin:"9px 0 7px"}}>{businessName}</h2><p style={{color:"#b9c5d5",fontSize:12,lineHeight:1.6,maxWidth:590}}>Turn the business information already discoverable on Maps into a professional digital front door — with enquiries, calls and customer follow-up in one place.</p></div><div style={{background:"rgba(255,255,255,.1)",padding:11,borderRadius:12}}><Sparkles size={20}/></div></div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10,marginTop:24}}>{contextItems.map(item=>{const Icon=item.icon;return <div key={item.title} style={{background:"#172130",border:"1px solid #2a3748",borderRadius:12,padding:14}}><Icon size={15} style={{color:"#9eb9ff"}}/><div style={{fontSize:10,color:"#8fa0b5",marginTop:8}}>{item.title}</div><strong style={{fontSize:12,display:"block",marginTop:4}}>{item.value}</strong></div>})}</div>
           <div style={{marginTop:16,padding:15,borderRadius:12,background:"#172130",border:"1px solid #2a3748"}}><div style={{fontSize:10,color:"#9eb9ff",fontWeight:800}}>WHY THIS LEAD MATTERS</div><div style={{fontSize:12,lineHeight:1.6,marginTop:6}}>{hasWebsite?"The business already has a website. The demo focuses on a clearer enquiry journey and lead capture rather than claiming the current site is broken.":"No website was returned by Maps. That is a concrete website opportunity: we can show the owner a working concept using the business name, category, location and available contact details."}</div></div>
-          <div style={{display:"flex",gap:9,flexWrap:"wrap",marginTop:18}}>{prospect?.mapsUrl&&<a href={prospect.mapsUrl} target="_blank" rel="noreferrer" style={{border:"1px solid #34445a",background:"transparent",color:"#fff",padding:"9px 12px",borderRadius:8,fontSize:11,textDecoration:"none"}}><MapPin size={12} style={{verticalAlign:"-2px",marginRight:5}}/>View Maps listing</a>}{prospect?.website&&<a href={prospect.website} target="_blank" rel="noreferrer" style={{border:"1px solid #34445a",background:"transparent",color:"#fff",padding:"9px 12px",borderRadius:8,fontSize:11,textDecoration:"none"}}><ExternalLink size={12} style={{verticalAlign:"-2px",marginRight:5}}/>View current website</a>}</div>
+          <div style={{display:"flex",gap:9,flexWrap:"wrap",marginTop:18}}>{prospect?.mapsUrl&&<a href={prospect.mapsUrl} target="_blank" rel="noreferrer" style={{border:"1px solid #34445a",background:"transparent",color:"#fff",padding:"9px 12px",borderRadius:8,fontSize:11,textDecoration:"none"}}><MapPin size={12} style={{verticalAlign:"-2px",marginRight:5}}/>View Maps listing</a>}{hasWebsite&&prospect?.website&&<a href={prospect.website} target="_blank" rel="noreferrer" style={{border:"1px solid #34445a",background:"transparent",color:"#fff",padding:"9px 12px",borderRadius:8,fontSize:11,textDecoration:"none"}}><ExternalLink size={12} style={{verticalAlign:"-2px",marginRight:5}}/>View current website</a>}</div>
         </div>
 
         <div style={{background:"#fff",border:"1px solid #e2e7ed",borderRadius:18,padding:22,boxShadow:"0 12px 35px rgba(23,32,42,.07)"}}>
