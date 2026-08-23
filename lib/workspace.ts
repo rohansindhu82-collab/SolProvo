@@ -9,6 +9,7 @@ export type WorkspaceProspect = {
   location: string;
   website?: string;
   mapsUrl?: string;
+  phone?: string;
   score: number;
   gaps: number;
   stage: ProspectStage;
