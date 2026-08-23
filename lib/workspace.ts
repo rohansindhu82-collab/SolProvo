@@ -8,6 +8,7 @@ export type WorkspaceProspect = {
   category: string;
   location: string;
   website?: string;
+  socialUrl?: string;
   mapsUrl?: string;
   phone?: string;
   score: number;
