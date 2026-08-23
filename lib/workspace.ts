@@ -12,9 +12,14 @@ export type WorkspaceProspect = {
   stage: ProspectStage;
   nextAction: string;
   followUpAt?: string;
-  createdAt: string;
   updatedAt?: string;
+  createdAt: string;
   source: "Google Places" | "Manual";
+  opportunityLabel?: "High" | "Medium" | "Low";
+  opportunityReason?: string;
+  recommendedService?: string;
+  recommendedPackage?: "Starter" | "Growth" | "Premium";
+  demoType?: "lead-capture" | "appointment" | "offers" | "reactivation";
 };
 
 export type ProspectActivity = {
@@ -53,17 +58,12 @@ export function upsertProspect(item: WorkspaceProspect) {
 export function updateProspect(id: string, patch: Partial<WorkspaceProspect>) {
   const current = loadProspects().find(x => x.id === id);
   saveProspects(loadProspects().map(x => x.id === id ? { ...x, ...patch, updatedAt: new Date().toISOString() } : x));
-  if (current && patch.stage && patch.stage !== current.stage) {
-    addActivity({ prospectId:id, type:"stage", title:`Stage changed to ${patch.stage}`, detail:current.stage + " → " + patch.stage });
-  }
+  if (current && patch.stage && patch.stage !== current.stage) addActivity({ prospectId:id, type:"stage", title:`Stage changed to ${patch.stage}`, detail:current.stage + " → " + patch.stage });
 }
 
 export function loadActivities(prospectId?: string): ProspectActivity[] {
   if (typeof window === "undefined") return [];
-  try {
-    const items: ProspectActivity[] = JSON.parse(localStorage.getItem(ACTIVITY_KEY) || "[]");
-    return prospectId ? items.filter(x => x.prospectId === prospectId) : items;
-  } catch { return []; }
+  try { const items: ProspectActivity[] = JSON.parse(localStorage.getItem(ACTIVITY_KEY) || "[]"); return prospectId ? items.filter(x => x.prospectId === prospectId) : items; } catch { return []; }
 }
 
 export function addActivity(activity: Omit<ProspectActivity, "id" | "createdAt">) {
