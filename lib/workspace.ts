@@ -1,3 +1,5 @@
+import { cloudPut } from "@/lib/cloud";
+
 export type ProspectStage = "New" | "Contacted" | "Interested" | "Demo" | "Won" | "Disqualified";
 
 export type WorkspaceProspect = {
@@ -44,6 +46,7 @@ export function saveProspects(items: WorkspaceProspect[]) {
   if (typeof window === "undefined") return;
   localStorage.setItem(KEY, JSON.stringify(items));
   window.dispatchEvent(new Event(EVENT));
+  void Promise.all(items.map(item => cloudPut("prospects", item.id, item))).catch(() => undefined);
 }
 
 export function upsertProspect(item: WorkspaceProspect) {
@@ -66,12 +69,19 @@ export function loadActivities(prospectId?: string): ProspectActivity[] {
   try { const items: ProspectActivity[] = JSON.parse(localStorage.getItem(ACTIVITY_KEY) || "[]"); return prospectId ? items.filter(x => x.prospectId === prospectId) : items; } catch { return []; }
 }
 
-export function addActivity(activity: Omit<ProspectActivity, "id" | "createdAt">) {
+export function replaceActivities(items: ProspectActivity[]) {
   if (typeof window === "undefined") return;
-  const items = loadActivities();
-  items.unshift({ ...activity, id: `${activity.prospectId}:${Date.now()}`, createdAt: new Date().toISOString() });
   localStorage.setItem(ACTIVITY_KEY, JSON.stringify(items.slice(0, 500)));
   window.dispatchEvent(new Event(EVENT));
+}
+
+export function addActivity(activity: Omit<ProspectActivity, "id" | "createdAt">) {
+  if (typeof window === "undefined") return;
+  const item = { ...activity, id: `${activity.prospectId}:${Date.now()}`, createdAt: new Date().toISOString() };
+  const items = loadActivities();
+  items.unshift(item);
+  replaceActivities(items);
+  void cloudPut("activities", item.id, item).catch(() => undefined);
 }
 
 export function workspaceEventName() { return EVENT; }
