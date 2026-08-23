@@ -6,7 +6,7 @@ import { ArrowLeft, CheckCircle2, ExternalLink, FileText, MapPin, MessageCircle,
 import { loadProspects, type WorkspaceProspect } from "@/lib/workspace";
 import { createLead } from "@/lib/businessos";
 
-const SOCIAL_HOSTS=new Set(["instagram.com","www.instagram.com","facebook.com","www.facebook.com","linkedin.com","www.linkedin.com","youtube.com","www.youtube.com","x.com","www.x.com","twitter.com","www.twitter.com"]);
+const SOCIAL_HOSTS=new Set(["instagram.com","www.instagram.com","facebook.com","www.facebook.com","linkedin.com","www.linkedin.com","youtube.com","www.youtube.com","x.com","www.x.com","twitter.com"]);
 function isSocialUrl(value:string){try{const host=new URL(value).hostname.toLowerCase();return SOCIAL_HOSTS.has(host)||host.endsWith(".instagram.com")||host.endsWith(".facebook.com")||host.endsWith(".linkedin.com")||host.endsWith(".youtube.com")}catch{return false}}
 
 export default function DemoFactoryPage() {
@@ -22,7 +22,10 @@ export default function DemoFactoryPage() {
   useEffect(()=>{
     const params=new URLSearchParams(window.location.search);
     const id=params.get("prospect");
-    setFrom(params.get("from")||"");
+    const explicitFrom=params.get("from")||"";
+    let navigationFrom=explicitFrom;
+    if(!navigationFrom){try{const raw=localStorage.getItem("solprovo.discovery.v2");const state=raw?JSON.parse(raw):null;if(Array.isArray(state?.places)&&state.places.length) navigationFrom="discovery";}catch{}}
+    setFrom(navigationFrom);
     if(id) setProspect(loadProspects().find(p=>p.id===id)||null);
   },[]);
 
