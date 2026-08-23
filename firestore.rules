@@ -2,10 +2,24 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function workspaceOwner(workspaceId) {
+      return signedIn() && request.auth.uid == workspaceId;
+    }
+
+    match /workspaces/{workspaceId} {
+      allow create: if workspaceOwner(workspaceId)
+        && request.resource.data.ownerId == request.auth.uid;
+      allow read, update, delete: if workspaceOwner(workspaceId);
+    }
+
     match /workspaces/{workspaceId}/{collection}/{documentId} {
-      // Temporary authenticated workspace boundary for the first cloud-enabled build.
-      // Production multi-tenant membership rules will replace this before onboarding paying clients.
-      allow read, write: if request.auth != null;
+      // User-scoped foundation. Team/member roles can be added here when
+      // shared workspaces are introduced; no cross-user workspace access.
+      allow read, write: if workspaceOwner(workspaceId);
     }
   }
 }
