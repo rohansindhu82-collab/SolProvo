@@ -1,0 +1,11 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /workspaces/{workspaceId}/{collection}/{documentId} {
+      // Temporary authenticated workspace boundary for the first cloud-enabled build.
+      // Production multi-tenant membership rules will replace this before onboarding paying clients.
+      allow read, write: if request.auth != null;
+    }
+  }
+}
