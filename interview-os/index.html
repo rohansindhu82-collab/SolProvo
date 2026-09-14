@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0d12" />
+  <title>Interview OS — AI Mock Interview Coach</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="noise"></div>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">I</span><span>Interview OS</span><small>BETA</small></div>
+    <div class="top-actions"><span id="sessionState" class="status-pill">Ready</span><button class="ghost" id="resetBtn">Reset</button></div>
+  </header>
+
+  <main>
+    <section id="setup" class="screen active">
+      <div class="hero-copy">
+        <div class="eyebrow">AI INTERVIEW SIMULATOR</div>
+        <h1>Walk into the interview<br><em>already prepared.</em></h1>
+        <p>Practice with an adaptive AI panel. Your answers, speech and interview presence are analysed together — then turned into a concrete improvement plan.</p>
+      </div>
+      <div class="setup-grid">
+        <div class="panel selection-panel">
+          <div class="panel-head"><span>01</span><h2>Choose your interview</h2></div>
+          <label>Exam / role</label>
+          <div class="role-grid" id="roleGrid"></div>
+          <label class="mt">Interview mode</label>
+          <div class="mode-grid" id="modeGrid"></div>
+          <button class="primary wide" id="startBtn">Start mock interview <span>→</span></button>
+        </div>
+        <div class="panel prep-panel">
+          <div class="panel-head"><span>02</span><h2>Before you begin</h2></div>
+          <div class="check-list">
+            <div><b>Camera</b><span>Used for observable interview-presence signals.</span></div>
+            <div><b>Microphone</b><span>Used for speech pace, pauses and transcript.</span></div>
+            <div><b>Privacy-first</b><span>Raw video stays in the browser in this prototype.</span></div>
+            <div><b>No fake psychology</b><span>We report observable behaviour, not emotion or personality.</span></div>
+          </div>
+          <div class="mini-score"><span>Target</span><strong>85+</strong><small>interview readiness</small></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="interview" class="screen">
+      <div class="interview-head">
+        <div><div class="eyebrow">LIVE SIMULATION</div><h2 id="interviewTitle">TGT Librarian</h2></div>
+        <div class="progress-wrap"><span id="questionCounter">Question 1 / 8</span><div class="progress"><i id="progressBar"></i></div></div>
+      </div>
+      <div class="interview-layout">
+        <div class="stage panel">
+          <div class="camera-wrap"><video id="camera" autoplay muted playsinline></video><canvas id="overlay"></canvas><div class="camera-label"><span class="live-dot"></span> LIVE ANALYSIS</div><div id="cameraHint" class="camera-hint">Camera permission is required for presence analysis.</div></div>
+          <div class="metrics-row">
+            <div><span>Eye engagement</span><b id="eyeMetric">—</b></div>
+            <div><span>Posture</span><b id="postureMetric">—</b></div>
+            <div><span>Face visibility</span><b id="faceMetric">—</b></div>
+            <div><span>Speech</span><b id="speechMetric">Listening</b></div>
+          </div>
+        </div>
+        <div class="panel interviewer">
+          <div class="interviewer-top"><div class="avatar">IO</div><div><b>AI Interview Panel</b><span id="panelTone">Professional · realistic</span></div><span class="thinking" id="thinking">●</span></div>
+          <div class="question" id="questionText">Preparing your first question…</div>
+          <div class="transcript-label">YOUR RESPONSE <span id="timer">00:00</span></div>
+          <div class="transcript" id="transcript">Your spoken answer will appear here.</div>
+          <div class="answer-actions"><button class="secondary" id="repeatBtn">Repeat question</button><button class="primary" id="micBtn">Start answering <span>●</span></button></div>
+          <div class="live-note" id="liveNote">Take a second to think before you answer. There is no need to rush.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="report" class="screen">
+      <div class="report-hero"><div><div class="eyebrow">POST-INTERVIEW ANALYSIS</div><h1 id="reportHeadline">Your interview, decoded.</h1><p id="reportSub">A coaching report built from your answers and observable delivery signals.</p></div><div class="readiness"><span>READINESS</span><strong id="overallScore">—</strong><small>/ 100</small></div></div>
+      <div class="report-grid">
+        <div class="panel score-panel"><div class="panel-head"><span>01</span><h2>Performance</h2></div><div id="scoreRows"></div></div>
+        <div class="panel strengths"><div class="panel-head"><span>02</span><h2>What worked</h2></div><div id="strengthsList"></div></div>
+        <div class="panel improvements"><div class="panel-head"><span>03</span><h2>What to fix next</h2></div><div id="improvementsList"></div></div>
+        <div class="panel action-plan"><div class="panel-head"><span>04</span><h2>Your next practice</h2></div><div id="practiceList"></div><button class="primary wide" id="practiceBtn">Practice weak areas →</button></div>
+      </div>
+    </section>
+  </main>
+  <footer>Interview OS · Behaviour signals are coaching aids, not psychological or hiring judgements.</footer>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/vision_bundle.mjs" type="module"></script>
+  <script src="app.js" type="module"></script>
+</body>
+</html>
