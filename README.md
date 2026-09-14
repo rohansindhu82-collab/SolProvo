@@ -2,63 +2,80 @@
 
 Local-first AI content operating system for a multi-channel YouTube + blog portfolio.
 
-## Build 03 — Narrative Intelligence
+## Builds 02–04
 
-Build 03 is a clean standalone narrative layer on top of the Build 02 research model. It converts evidence into a structured, provenance-first production package instead of generating a generic script dump.
+Creator OS now has a continuous research-to-production chain:
 
-### What it adds
+`discovery → source vault → claim ledger → evidence matrix → conflicts → thesis → narrative → script → visual registry → rights QA → human approval`
 
-- deterministic source authority tiers
+### Build 02 — Research Intelligence
+
+- persistent SQLite research vault
+- YouTube discovery connector
+- Google News RSS discovery
+- direct source ingestion
+- candidate claim extraction
+- source-to-claim provenance
+- optional Ollama planning
+
+### Build 03 — Narrative Intelligence
+
+- source authority tiers
 - evidence-weighted claim matrix
-- conservative contradiction detection
-- three original narrative angles
-- hook variants
+- contradiction detection
+- original narrative angles and hooks
 - causal narrative arc
 - sentence-level citation plan
-- shot plan with visual provenance requirements
-- thumbnail concepts
-- Shorts candidates
-- blog brief
-- versioned narrative packages in SQLite
-- explicit quality gates and mandatory human approval
+- shot plan with visual provenance
+- thumbnail, Shorts and blog derivatives
+- versioned narrative packages
 
-### Run the clean Build 03
+### Build 04 — Production Intelligence
+
+- evidence-linked script blueprint
+- sentence → claim mapping
+- uncertainty/review handling
+- Hindi voice direction plan
+- visual asset registry
+- original vs external visual provenance
+- human rights-clearance gate
+- deterministic production QA
+- explicit human approval endpoint
+- versioned production packages
+
+## Run Build 04
 
 ```bash
-python3 creator_os_build03.py
+python3 creator_os_build04.py
 ```
 
 Open `http://127.0.0.1:8787`.
 
-Build 03 keeps the existing Build 02 server intact as `creator_os.py`; the clean server uses its own `creator_os_build03.db`.
+## Build 04 API
 
-### Optional connectors
-
-```bash
-export YOUTUBE_API_KEY=your_key
-export YOUTUBE_REGION=IN
-export OLLAMA_BASE_URL=http://127.0.0.1:11434
-export OLLAMA_MODEL=qwen2.5:7b
-python3 creator_os_build03.py
-```
+- `POST /api/narrative/build`
+- `GET /api/narrative/latest?topic_id=...`
+- `POST /api/production/build`
+- `GET /api/production/latest?topic_id=...`
+- `GET /api/production/qa?topic_id=...`
+- `POST /api/production/rights`
+- `POST /api/production/approve`
 
 ## Product principles
 
 1. Learn from audience demand, not from copying another creator.
-2. A discovery result is a signal, not evidence.
-3. Claims are untrusted until source-backed and reviewed.
+2. Discovery results are signals, not evidence.
+3. Claims remain untrusted until source-backed and reviewed.
 4. Primary/authoritative sources are preferred for factual documentaries.
-5. Provenance is preserved from source → claim → narrative → visual requirement.
-6. Competitor content may inform demand and format signals, but is never treated as a script or asset source.
+5. Provenance is preserved from source → claim → narrative → script → visual.
+6. External visual assets require rights clearance before publish readiness.
 7. AI assists research and production; it does not silently publish.
-8. One master research package should feed documentary video, Shorts, blog and social derivatives.
+8. One master research package feeds documentary, Shorts, blog and social derivatives.
 
-## Architecture
+## Safety of the production pipeline
 
-`discovery → source vault → claim ledger → evidence matrix → conflicts → thesis → narrative → citation plan → shot plan → derivatives → human approval`
+Creator OS deliberately refuses to treat generated text as evidence. It does not invent sources or silently clear third-party visual rights. A production package can be technically complete while still being blocked from publishing until a human resolves outstanding evidence or rights checks.
 
-The system is intentionally designed around originality and substantive value. YouTube's current monetization policy says mass-produced/repetitive or reused content without meaningful original value can be ineligible for monetization, so Creator OS treats originality and provenance as product-level constraints rather than after-the-fact checks.
+## Next
 
-## Roadmap
-
-Build 04: production intelligence — script generation from the approved narrative package, sentence-level evidence attachment, Hindi/English voice plan, visual asset registry, rights/provenance checks and deterministic QA. Later: rendering, YouTube OAuth/upload, analytics feedback and blog publishing.
+Build 05 should be the Media & Render Engine: asset ingestion, image/video/audio provenance, timeline assembly, captions, voice/render adapters, deterministic preflight and export manifests. Platform upload and analytics should come after the production core is reliable.
